@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Bell } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -18,7 +18,7 @@ export default function Navbar() {
     }
 
     return (
-        <nav className="dark w-full h-16 bg-background text-foreground flex items-center justify-between px-4">
+        <nav className="dark sticky top-0 w-full h-16 bg-background text-foreground flex items-center justify-between px-4 z-5">
             <span></span>
 
             {/* Middle Section (Search Bar) */}
@@ -41,7 +41,7 @@ export default function Navbar() {
             </div>
 
             {/* Right Section (Icons / Profile) */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5">
                 {/* Example: upload / notifications / profile */}
                 <DropdownMenu>
                     <DropdownMenuTrigger className="flex items-center justify-between gap-3 p-2 px-3 rounded-full bg-popover hover:bg-muted cursor-pointer">
@@ -53,6 +53,8 @@ export default function Navbar() {
                         <DropdownMenuItem>Create a post</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <button><Bell /></button>
 
                 <div className="w-9 h-9 rounded-full">
                     <img className="w-9 h-9 rounded-full" src="https://avatars.githubusercontent.com/u/182490144?s=400&u=6fe48aa6c2af9377489a8a06332d9bd62a44156c&v=4" alt="" />
