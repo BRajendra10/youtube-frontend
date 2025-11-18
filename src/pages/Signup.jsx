@@ -1,60 +1,66 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
 import { useDispatch } from "react-redux";
 import { RegisterUser } from "../features/userSlice";
-// import axios from "axios";
+
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
 export default function Signup() {
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const dispatch =  useDispatch();
-  // const navigate =  useNavigate();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [user, setUser] = useState({
-    fullName: "",
-    username: "",
-    email: "",
-    password: "",
-    avatar: null,       // ⭐ NEW
-    coverImage: null,   // ⭐ NEW
+  // -------------------- Yup Validation Schema --------------------
+  const validationSchema = Yup.object({
+    fullName: Yup.string().required("Full name is required"),
+    username: Yup.string()
+      .min(3, "Username must be at least 3 characters")
+      .required("Username is required"),
+    email: Yup.string().email("Invalid email format").required("Email required"),
+    password: Yup.string()
+      .min(6, "Password must be at least 6 characters")
+      .required("Password required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), null], "Passwords do not match")
+      .required("Confirm your password"),
+    avatar: Yup.mixed().required("Avatar is required"),
+    coverImage: Yup.mixed().required("Cover Image is required"),
   });
 
-  const handleSignup = async () => {
-    if (user.password !== confirmPassword) {
-      console.log("password and confirm password does not match !!");
-      return;
-    }
+  // -------------------- Formik --------------------
+  const formik = useFormik({
+    initialValues: {
+      fullName: "",
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      avatar: null,
+      coverImage: null,
+    },
 
-    // ⭐ Prepare FormData for backend (required for image upload)
-    const formData = new FormData();
-    formData.append("fullName", user.fullName);
-    formData.append("username", user.username);
-    formData.append("email", user.email);
-    formData.append("password", user.password);
-    formData.append("avatar", user.avatar);
-    formData.append("coverImage", user.coverImage);
+    validationSchema,
 
-    console.log("FormData ready to send", formData);
+    onSubmit: (values) => {
+      // Prepare FormData for backend
+      const formData = new FormData();
+      formData.append("fullName", values.fullName);
+      formData.append("username", values.username);
+      formData.append("email", values.email);
+      formData.append("password", values.password);
+      formData.append("avatar", values.avatar);
+      formData.append("coverImage", values.coverImage);
 
-    // console.log([...formData.entries()]);
-    // [
-    //   ["fullName", "Vishnu Prajapati"],
-    //   ["username", "VPrajapati" ],
-    //   ["email", "vishnu21@gmail.com"],
-    //   ["password", "$Vishnu_p_20"],
-    //   ["avatar",{}],
-    //   ["coverImage",{}]
-    // ]
-
-    dispatch(RegisterUser(formData));
-    // navigate("/");
-
-  };
-
+      dispatch(RegisterUser(formData));
+      navigate("/")
+    },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] px-4">
@@ -66,95 +72,130 @@ export default function Signup() {
         </CardHeader>
 
         <CardContent className="flex flex-col gap-5">
+          <form onSubmit={formik.handleSubmit} className="flex flex-col gap-5">
 
-          {/* Full Name */}
-          <div className="flex flex-col gap-2">
-            <Label>Full Name</Label>
-            <Input
-              type="text"
-              placeholder="John Doe"
-              className="bg-[#0f0f0f] border-zinc-700 text-white"
-              onChange={(e) => setUser({ ...user, fullName: e.target.value })}
-            />
-          </div>
+            {/* Full Name */}
+            <div className="flex flex-col gap-2">
+              <Label>Full Name</Label>
+              <Input
+                type="text"
+                name="fullName"
+                placeholder="John Doe"
+                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.fullName && formik.errors.fullName && (
+                <p className="text-red-500 text-xs">{formik.errors.fullName}</p>
+              )}
+            </div>
 
-          {/* Username */}
-          <div className="flex flex-col gap-2">
-            <Label>Username</Label>
-            <Input
-              type="text"
-              placeholder="your_username"
-              className="bg-[#0f0f0f] border-zinc-700 text-white"
-              onChange={(e) => setUser({ ...user, username: e.target.value })}
-            />
-          </div>
+            {/* Username */}
+            <div className="flex flex-col gap-2">
+              <Label>Username</Label>
+              <Input
+                type="text"
+                name="username"
+                placeholder="your_username"
+                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.username && formik.errors.username && (
+                <p className="text-red-500 text-xs">{formik.errors.username}</p>
+              )}
+            </div>
 
-          {/* Email */}
-          <div className="flex flex-col gap-2">
-            <Label>Email</Label>
-            <Input
-              type="email"
-              placeholder="you@example.com"
-              className="bg-[#0f0f0f] border-zinc-700 text-white"
-              onChange={(e) => setUser({ ...user, email: e.target.value })}
-            />
-          </div>
+            {/* Email */}
+            <div className="flex flex-col gap-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <p className="text-red-500 text-xs">{formik.errors.email}</p>
+              )}
+            </div>
 
-          {/* Password */}
-          <div className="flex flex-col gap-2">
-            <Label>Password</Label>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              className="bg-[#0f0f0f] border-zinc-700 text-white"
-              onChange={(e) => setUser({ ...user, password: e.target.value })}
-            />
-          </div>
+            {/* Password */}
+            <div className="flex flex-col gap-2">
+              <Label>Password</Label>
+              <Input
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.password && formik.errors.password && (
+                <p className="text-red-500 text-xs">{formik.errors.password}</p>
+              )}
+            </div>
 
-          {/* Confirm Password */}
-          <div className="flex flex-col gap-2">
-            <Label>Confirm Password</Label>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              className="bg-[#0f0f0f] border-zinc-700 text-white"
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
+            {/* Confirm Password */}
+            <div className="flex flex-col gap-2">
+              <Label>Confirm Password</Label>
+              <Input
+                type="password"
+                name="confirmPassword"
+                placeholder="••••••••"
+                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+              />
+              {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                <p className="text-red-500 text-xs">{formik.errors.confirmPassword}</p>
+              )}
+            </div>
 
-          {/* ⭐ Avatar Upload */}
-          <div className="flex flex-col gap-2">
-            <Label>Avatar</Label>
-            <Input
-              type="file"
-              accept="image/*"
-              className="bg-[#0f0f0f] border-zinc-700 text-white"
-              onChange={(e) =>
-                setUser({ ...user, avatar: e.target.files[0] })
-              }
-            />
-          </div>
+            {/* Avatar Upload */}
+            <div className="flex flex-col gap-2">
+              <Label>Avatar</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                name="avatar"
+                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                onChange={(e) =>
+                  formik.setFieldValue("avatar", e.target.files[0])
+                }
+              />
+              {formik.touched.avatar && formik.errors.avatar && (
+                <p className="text-red-500 text-xs">{formik.errors.avatar}</p>
+              )}
+            </div>
 
-          {/* ⭐ Cover Image Upload */}
-          <div className="flex flex-col gap-2">
-            <Label>Cover Image</Label>
-            <Input
-              type="file"
-              accept="image/*"
-              className="bg-[#0f0f0f] border-zinc-700 text-white"
-              onChange={(e) =>
-                setUser({ ...user, coverImage: e.target.files[0] })
-              }
-            />
-          </div>
+            {/* Cover Image Upload */}
+            <div className="flex flex-col gap-2">
+              <Label>Cover Image</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                name="coverImage"
+                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                onChange={(e) =>
+                  formik.setFieldValue("coverImage", e.target.files[0])
+                }
+              />
+              {formik.touched.coverImage && formik.errors.coverImage && (
+                <p className="text-red-500 text-xs">{formik.errors.coverImage}</p>
+              )}
+            </div>
 
-          {/* Create Account Button */}
-          <Button
-            className="w-full bg-[#FF0000] hover:bg-red-600 text-white font-medium"
-            onClick={handleSignup}
-          >
-            Create Account
-          </Button>
+            {/* Submit button */}
+            <Button
+              type="submit"
+              className="w-full bg-[#FF0000] hover:bg-red-600 text-white font-medium"
+            >
+              Create Account
+            </Button>
+          </form>
 
           <Separator className="bg-zinc-700" />
 
@@ -167,7 +208,6 @@ export default function Signup() {
               Sign in
             </NavLink>
           </p>
-
         </CardContent>
       </Card>
     </div>

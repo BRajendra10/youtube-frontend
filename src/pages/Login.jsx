@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,20 +7,37 @@ import { Separator } from "@/components/ui/separator";
 
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useFormik } from "formik";
+import * as Yup from "yup";
 
-import { LoginUser } from '../features/userSlice.js';
+import { LoginUser } from "../features/userSlice.js";
 
 export default function Login() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    // ----- Yup Validation Schema -----
+    const validationSchema = Yup.object({
+        email: Yup.string()
+            .email("Invalid email format")
+            .required("Email is required"),
+        password: Yup.string()
+            .min(6, "Password must be at least 6 characters")
+            .required("Password is required"),
+    });
 
-    const loginHandler = async (email, password) => {
-        dispatch(LoginUser({email, password}))
-        navigate('/');
-    }
+    // ----- Formik -----
+    const formik = useFormik({
+        initialValues: {
+            email: "",
+            password: "",
+        },
+        validationSchema,
+        onSubmit: async (values) => {
+            dispatch(LoginUser(values));
+            navigate("/");
+        },
+    });
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#0f0f0f] px-4">
@@ -32,34 +49,54 @@ export default function Login() {
                 </CardHeader>
 
                 <CardContent className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="Enter your email"
-                            className="bg-[#0f0f0f] border-zinc-700 text-white"
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
+                    <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
 
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            placeholder="Enter your password"
-                            className="bg-[#0f0f0f] border-zinc-700 text-white"
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+                        {/* Email */}
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                name="email"
+                                placeholder="Enter your email"
+                                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                                value={formik.values.email}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
 
-                    <Button
-                        className="w-full bg-[#FF0000] hover:bg-red-600 text-white mt-2"
-                        onClick={() => loginHandler(email, password)}
-                    >
-                        Sign In
-                    </Button>
+                            {formik.touched.email && formik.errors.email && (
+                                <p className="text-red-500 text-xs">{formik.errors.email}</p>
+                            )}
+                        </div>
+
+                        {/* Password */}
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                name="password"
+                                placeholder="Enter your password"
+                                className="bg-[#0f0f0f] border-zinc-700 text-white"
+                                value={formik.values.password}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+
+                            {formik.touched.password && formik.errors.password && (
+                                <p className="text-red-500 text-xs">{formik.errors.password}</p>
+                            )}
+                        </div>
+
+                        {/* Submit Button */}
+                        <Button
+                            type="submit"
+                            className="w-full bg-[#FF0000] hover:bg-red-600 text-white mt-2"
+                        >
+                            Sign In
+                        </Button>
+                    </form>
 
                     <p className="text-xs text-zinc-500 text-center mt-3">
                         By continuing, you agree to our Terms & Privacy Policy.
@@ -68,7 +105,15 @@ export default function Login() {
                     <Separator className="bg-zinc-700" />
 
                     <p className="text-sm text-zinc-400 text-center">
-                        Don't have account?, <NavLink className={"underline text-white hover:text-blue-500 transition"} to="/signup">Create account</NavLink>
+                        Don't have account?,{" "}
+                        <NavLink
+                            className={
+                                "underline text-white hover:text-blue-500 transition"
+                            }
+                            to="/signup"
+                        >
+                            Create account
+                        </NavLink>
                     </p>
                 </CardContent>
             </Card>
