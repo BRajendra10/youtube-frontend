@@ -1,7 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-export const LoginUser = createAsyncThunk("user/login", async ({email, password}) => {
+export const RegisterUser = createAsyncThunk("user/register", async (formData) => {
+    const response = await axios.post("/api/v1/users/register", formData);
+    return response.data;
+})
+
+export const LoginUser = createAsyncThunk("user/login", async ({ email, password }) => {
     const response = await axios.post("/api/v1/users/login", {
         email,
         password
@@ -25,13 +30,25 @@ const userSlice = createSlice({
                 state.reqStatus = "pending"
             })
             .addCase(LoginUser.fulfilled, (state, action) => {
-                const {user, accessToken } = action.payload;
+                const { user, accessToken } = action.payload;
 
                 state.reqStatus = true;
                 state.currentUser = user;
                 state.accessToken = accessToken;
             })
             .addCase(LoginUser.rejected, (state) => {
+                state.reqStatus = "error"
+            })
+
+        builder
+            .addCase(RegisterUser.pending, (state) => {
+                state.reqStatus = "pending"
+            })
+            .addCase(RegisterUser.fulfilled, (state, action) => {
+                state.currentUser = action.payload;
+                state.reqStatus = true;
+            })
+            .addCase(RegisterUser.rejected, (state) => {
                 state.reqStatus = "error"
             })
     }

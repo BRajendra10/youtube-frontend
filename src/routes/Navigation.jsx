@@ -6,6 +6,7 @@ import Login from "../pages/Login";
 import Logout from "../pages/Signup";
 
 import Videos from "../components/Videos";
+import PrivateRoute from "./PrivateRoute";
 
 
 export default function Navigation() {
@@ -16,9 +17,9 @@ export default function Navigation() {
             <Route path="/signup" element={<Logout />} />
 
             {/* Protected Layout */}
-            <Route path="/" element={<Layout />}>
+            <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
                 <Route index element={<Videos />} />
-                <Route path="/subscriptions" element={<Videos />} />  {/* same as path="/" */}
+                <Route path="/subscriptions" element={<Videos />} />
             </Route>
         </Routes>
     )
